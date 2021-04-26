@@ -24,6 +24,8 @@ int main(int argc, char **argv)
     int page_size = std::stoi(argv[1]);
     printStartMessage(page_size);
 
+    //check for power of 2 num & (num -1) == 0
+
     // Create physical 'memory'
     uint32_t mem_size = 67108864;
     void *memory = malloc(mem_size); // 64 MB (64 * 1024 * 1024)
@@ -39,7 +41,49 @@ int main(int argc, char **argv)
     while (command != "exit") {
         // Handle command
         // TODO: implement this!
-
+        if(command == "create"){
+            //void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table)
+            createProcess(std::stoi(argv[1]), std::stoi(argv[2]), mmu, page_table);
+        }
+        else if(command == "allocate"){
+            DataType check;//enum DataType Char, Short, Int, Float, Long, Double
+            if(argv[3] == "char"){
+                check = Char;
+            }
+            else if(argv[3] == "short"){
+                check = Short;
+            }
+            else if(argv[3] == "int"){
+                check = Int;
+            }
+            else if(argv[3] == "float"){
+                check = Float;
+            }
+            else if(argv[3] == "long"){
+                check = Long;
+            }
+            else if(argv[3] == "double"){
+                check = Double;
+            }
+            //void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
+            //std::cout << "  * allocate <PID> <var_name> <data_type> <number_of_elements> (allocated memory on the heap)" << std:: endl;
+            allocateVariable(std::stoi(argv[1]), argv[2], check, std::stoi(argv[4]), mmu, page_table);
+        }
+        else if(command == "set"){
+            
+        }
+        else if(command == "free"){
+            
+        }
+        else if(command == "terminate"){
+            
+        }
+        else if(command == "print"){
+            
+        }
+        else{
+            printf("command doesn't exist");
+        }
         // Get next command
         std::cout << "> ";
         std::getline (std::cin, command);
@@ -74,7 +118,14 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
 {
     // TODO: implement this!
     //   - create new process in the MMU
+    uint32_t currentPid = mmu->createProcess();
+    
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
+    //void addVariableToProcess(uint32_t pid, std::string var_name, DataType type, uint32_t size, uint32_t address);
+    mmu->addVariableToProcess(currentPid, "<TEXT>", Int, text_size, 0);
+    mmu->addVariableToProcess(currentPid, "<GLOBALS>", Int, data_size, text_size);
+    mmu->addVariableToProcess(currentPid, "<STACK>", Int, 65536, text_size+data_size);
+    printf("%i", currentPid);
     //   - print pid
 }
 

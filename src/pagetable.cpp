@@ -1,4 +1,6 @@
 #include "pagetable.h"
+#include "math.h"
+#include "algorithm"
 
 PageTable::PageTable(int page_size)
 {
@@ -28,10 +30,21 @@ void PageTable::addEntry(uint32_t pid, int page_number)
 {
     // Combination of pid and page number act as the key to look up frame number
     std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
+    std::map<std::string, int>::iterator it = _table.begin();
 
     int frame = 0; 
     // Find free frame
-    // TODO: implement this!
+    while(it != _table.end()){
+        int value = it->second;
+        if(value == frame){
+            frame++;
+            it = _table.begin();
+        }
+        else{
+            it++;
+        }
+    }
+    
     _table[entry] = frame;
 }
 
@@ -42,15 +55,29 @@ int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
     int page_number = 0;
     int page_offset = 0;
 
+    int numBits = log2(_page_size);
+    for(int i = 0; i <= numBits; i++){
+        page_offset += 1*(2^i);
+    }
+    page_number = virtual_address >> numBits; 
+
     // Combination of pid and page number act as the key to look up frame number
     std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
     
     // If entry exists, look up frame number and convert virtual to physical address
     int address = -1;
+    std::map<std::string, int>::iterator it;
     if (_table.count(entry) > 0)
     {
-        // TODO: implement this!
+        it = PageTable::_table.find(entry);
+        if(it != _table.end()){
+            address = (_page_size*PageTable::_table.at(entry)) + page_offset;
+        }
+        else{
+            printf("entry not found in table");
+        }
     }
+    
 
     return address;
 }
