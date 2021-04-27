@@ -11,6 +11,7 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table);
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
 std::vector<std::string> splitCommand(std::string command);
+int getDataTypeBytes(DataType type);
 
 int main(int argc, char **argv)
 {
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
             }
             //void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
             //std::cout << "  * allocate <PID> <var_name> <data_type> <number_of_elements> (allocated memory on the heap)" << std:: endl;
-            allocateVariable(std::stoi(strings.at(1)), std::stoi(strings.at(2)), check, std::stoi(strings.at(4)), mmu, page_table);
+            allocateVariable(std::stoi(strings.at(1)), strings.at(2), check, std::stoi(strings.at(4)), mmu, page_table);
         }
         else if(strings.at(0) == "set"){
             
@@ -141,6 +142,51 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
 {
     // TODO: implement this!
     //   - find first free space within a page already allocated to this process that is large enough to fit the new variable
+    int byteSize = getDataTypeBytes(type);
+    int totalSize = getDataTypeBytes(type) * num_elements;
+    Process *currentProcess; 
+    Variable *freeSpace;
+    Variable *creating = new Variable();
+    creating->name = var_name;
+    creating->type = type;
+    creating->size = totalSize;
+    
+    for(int i = 0; i < mmu->_processes.size(); i++){
+        if(mmu->_processes.at(i)->pid == pid){
+            currentProcess = mmu->_processes.at(i);
+            break;
+        }
+    }
+    for(int j = 0; j < currentProcess->variables.size(); j++){
+        if(currentProcess->variables.at(j)->name == "<FREE_SPACE>" && currentProcess->variables.at(j)->size >= totalSize){
+            freeSpace = currentProcess->variables.at(j);
+            int remainingSpace = (freeSpace->virtual_address%page_table->_page_size)%byteSize;
+            if(remainingSpace != 0){
+                int freeSpaceSize = freeSpace->size - remainingSpace - totalSize; //new small free space size
+                Variable *addFreeSpace = new Variable(); //new var for new free space after added var
+                addFreeSpace->name = "<FREE_SPACE>";
+                addFreeSpace->size = freeSpaceSize;
+                freeSpace->size = remainingSpace; //new size for small free space
+                creating->virtual_address = freeSpace->virtual_address + remainingSpace; //add new var in correct spot
+                addFreeSpace->virtual_address = creating->virtual_address + creating->size; //add free space address after var
+                currentProcess->variables.emplace_back(addFreeSpace); //add new free space to vector
+            }
+            else{
+                creating->virtual_address = freeSpace->virtual_address;
+                freeSpace->virtual_address = freeSpace->virtual_address + totalSize;
+                if(freeSpace->size - totalSize == 0){
+                    //remove freeSpace
+                    currentProcess->variables.erase(freeSpace);
+                }
+
+                else{
+                    freeSpace->size = freeSpace->size - totalSize;
+                }
+            }
+            currentProcess->variables.emplace(freeSpace, creating);
+            break;
+        }
+    }
     //   - if no hole is large enough, allocate new page(s)
     //   - insert variable into MMU
     //   - print virtual memory address 
@@ -179,4 +225,19 @@ std::vector<std::string> splitCommand(std::string command){
     }
     free(word);
     return strings;
+}
+
+int getDataTypeBytes(DataType type){
+    if(type == Char){
+        return 1;
+    }
+    else if(type == Short){
+        return 2;
+    }
+    else if(type == Int || type == Float){
+        return 4;
+    }
+    else{
+        return 8;
+    }
 }
