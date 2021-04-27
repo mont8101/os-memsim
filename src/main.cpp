@@ -10,6 +10,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, void *memory);
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table);
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
+std::vector<std::string> splitCommand(std::string command);
 
 int main(int argc, char **argv)
 {
@@ -41,48 +42,55 @@ int main(int argc, char **argv)
     while (command != "exit") {
         // Handle command
         // TODO: implement this!
-        if(command == "create"){
+        std::vector<std::string> strings;
+        strings = splitCommand(command);
+
+        
+        if(strings.at(0) == "create"){
             //void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table)
-            createProcess(std::stoi(argv[1]), std::stoi(argv[2]), mmu, page_table);
+            createProcess(std::stoi(strings.at(1)), std::stoi(strings.at(2)), mmu, page_table);
         }
-        else if(command == "allocate"){
+        else if(strings.at(0) == "allocate"){
             DataType check;//enum DataType Char, Short, Int, Float, Long, Double
-            if(argv[3] == "char"){
+            if(strings.at(3) == "char"){
                 check = Char;
             }
-            else if(argv[3] == "short"){
+            else if(strings.at(3) == "short"){
                 check = Short;
             }
-            else if(argv[3] == "int"){
+            else if(strings.at(3) == "int"){
                 check = Int;
             }
-            else if(argv[3] == "float"){
+            else if(strings.at(3) == "float"){
                 check = Float;
             }
-            else if(argv[3] == "long"){
+            else if(strings.at(3) == "long"){
                 check = Long;
             }
-            else if(argv[3] == "double"){
+            else if(strings.at(3) == "double"){
                 check = Double;
             }
             //void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
             //std::cout << "  * allocate <PID> <var_name> <data_type> <number_of_elements> (allocated memory on the heap)" << std:: endl;
-            allocateVariable(std::stoi(argv[1]), argv[2], check, std::stoi(argv[4]), mmu, page_table);
+            allocateVariable(std::stoi(strings.at(1)), std::stoi(strings.at(2)), check, std::stoi(strings.at(4)), mmu, page_table);
         }
-        else if(command == "set"){
+        else if(strings.at(0) == "set"){
             
         }
-        else if(command == "free"){
+        else if(strings.at(0) == "free"){
             
         }
-        else if(command == "terminate"){
+        else if(strings.at(0) == "terminate"){
             
         }
-        else if(command == "print"){
+        else if(strings.at(0) == "print"){
             
         }
         else{
             printf("command doesn't exist");
+            for(int i = 0; i < strings.size(); i++){
+                std::cout << strings.at(i) << std::endl;
+            }
         }
         // Get next command
         std::cout << "> ";
@@ -125,7 +133,7 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     mmu->addVariableToProcess(currentPid, "<TEXT>", Int, text_size, 0);
     mmu->addVariableToProcess(currentPid, "<GLOBALS>", Int, data_size, text_size);
     mmu->addVariableToProcess(currentPid, "<STACK>", Int, 65536, text_size+data_size);
-    printf("%i", currentPid);
+    printf("%i\n", currentPid);
     //   - print pid
 }
 
@@ -159,4 +167,16 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+}
+
+std::vector<std::string> splitCommand(std::string command){
+    std::vector<std::string> strings;
+    char *word = strdup((char *)command.c_str());
+    char *test = strtok(word, " ");
+    while(test != NULL){
+        strings.push_back(test);
+        test = strtok(NULL, " ");
+    }
+    free(word);
+    return strings;
 }
