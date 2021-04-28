@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         
         if(strings.at(0) == "create"){
             //void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table)
-            createProcess(std::stoi(strings.at(1)), std::stoi(strings.at(2)), mmu, page_table);
+            createProcess(std::stoi(strings.at(1)), std::stoi(strings.at(2)), mmu, page_table); 
         }
         else if(strings.at(0) == "allocate"){
             DataType check;//enum DataType Char, Short, Int, Float, Long, Double
@@ -142,6 +142,8 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
 {
     // TODO: implement this!
     //   - find first free space within a page already allocated to this process that is large enough to fit the new variable
+    //int lastPage = page_table->getTable()[page_table->getTable().size() -1];
+    
     int byteSize = getDataTypeBytes(type);
     int totalSize = getDataTypeBytes(type) * num_elements;
     int pSize = page_table->getPageSize();
