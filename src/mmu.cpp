@@ -10,6 +10,18 @@ Mmu::~Mmu()
 {
 }
 
+uint32_t Mmu::getPID(int index){
+    return _processes[index]->pid;
+}
+
+std::vector<Process*> Mmu::getProcess(){
+    return _processes;
+}
+
+std::vector<Variable*> Mmu::getVars(Process *process){
+    return process->variables;
+}
+
 uint32_t Mmu::createProcess()
 {
     Process *proc = new Process();

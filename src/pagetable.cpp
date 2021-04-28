@@ -7,6 +7,14 @@ PageTable::PageTable(int page_size)
     _page_size = page_size;
 }
 
+int PageTable::getPageSize(){
+    return _page_size;
+}
+
+std::map<std::string, int> PageTable::getTable(){
+    return _table;
+}
+
 PageTable::~PageTable()
 {
 }
@@ -77,8 +85,6 @@ int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
             printf("entry not found in table");
         }
     }
-    
-
     return address;
 }
 
