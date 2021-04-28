@@ -144,6 +144,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - find first free space within a page already allocated to this process that is large enough to fit the new variable
     int byteSize = getDataTypeBytes(type);
     int totalSize = getDataTypeBytes(type) * num_elements;
+    int pSize = page_table->getPageSize();
     Process *currentProcess; 
     Variable *freeSpace;
     Variable *creating = new Variable();
@@ -151,16 +152,19 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     creating->type = type;
     creating->size = totalSize;
     
-    for(int i = 0; i < mmu->_processes.size(); i++){
-        if(mmu->_processes.at(i)->pid == pid){
-            currentProcess = mmu->_processes.at(i);
+    for(int i = 0; i < mmu->getProcess().size(); i++){
+        if(mmu->getPID(i) == pid){
+            currentProcess = mmu->getProcess().at(i);
             break;
         }
     }
+    
     for(int j = 0; j < currentProcess->variables.size(); j++){
         if(currentProcess->variables.at(j)->name == "<FREE_SPACE>" && currentProcess->variables.at(j)->size >= totalSize){
             freeSpace = currentProcess->variables.at(j);
-            int remainingSpace = (freeSpace->virtual_address%page_table->_page_size)%byteSize;
+            std::vector<Variable*>::iterator it;
+            it = mmu->getVars(currentProcess).begin() + j;
+            int remainingSpace = (freeSpace->virtual_address%pSize)%byteSize;
             if(remainingSpace != 0){
                 int freeSpaceSize = freeSpace->size - remainingSpace - totalSize; //new small free space size
                 Variable *addFreeSpace = new Variable(); //new var for new free space after added var
@@ -175,15 +179,15 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
                 creating->virtual_address = freeSpace->virtual_address;
                 freeSpace->virtual_address = freeSpace->virtual_address + totalSize;
                 if(freeSpace->size - totalSize == 0){
-                    //remove freeSpace
-                    currentProcess->variables.erase(freeSpace);
+                    //remove freeSpace 
+                    currentProcess->variables.erase(it);
                 }
 
                 else{
                     freeSpace->size = freeSpace->size - totalSize;
                 }
             }
-            currentProcess->variables.emplace(freeSpace, creating);
+            mmu->getVars(currentProcess).emplace(it, creating);
             break;
         }
     }
