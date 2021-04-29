@@ -38,6 +38,8 @@ public:
     void print();
     int getPageSize();
     std::map<std::string, int> getTable();
+    std::string getSpaces(int string, int maxSize);
+    std::vector<std::string> splitKey(std::string key);
 };
 
 #endif // __PAGETABLE_H_

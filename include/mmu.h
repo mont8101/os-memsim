@@ -35,6 +35,8 @@ public:
     uint32_t getPID(int index);
     std::vector<Process*> getProcess();
     std::vector<Variable*> getVars(Process *process);
+    std::string getSpaces(int string, int maxSize);
+    std::string intToHex(int num);
 };
 
 #endif // __MMU_H_
