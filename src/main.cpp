@@ -189,6 +189,20 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
                     freeSpace->size = freeSpace->size - totalSize;
                 }
             }
+            int firstPage = (int) creating->virtual_address/pSize;
+            int lastPage = (int)(creating->virtual_address + creating->size - 1)/pSize;
+            std::string key = std::to_string(pid) + "|" + std::to_string(firstPage);
+            if(page_table->getTable().count(key) == 1){
+                for(int i = firstPage + 1; i <= lastPage; i++){
+                    page_table->addEntry(pid, i);
+                }
+            }
+            else{
+                for(int i = firstPage; i <= lastPage; i++){
+                    page_table->addEntry(pid, i);
+                }
+            }
+
             mmu->getVars(currentProcess).emplace(it, creating);
             break;
         }
@@ -196,6 +210,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - if no hole is large enough, allocate new page(s)
     //   - insert variable into MMU
     //   - print virtual memory address 
+    printf("%i", creating->virtual_address);
 }
 
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, void *memory)
