@@ -85,7 +85,7 @@ int main(int argc, char **argv)
             
         }
         else if(strings.at(0) == "print"){
-            
+            //test if break
         }
         else{
             printf("command doesn't exist");
