@@ -1,6 +1,8 @@
 #include "pagetable.h"
 #include "math.h"
 #include "algorithm"
+#include <string>
+#include <cstring>
 
 PageTable::PageTable(int page_size)
 {
@@ -100,5 +102,28 @@ void PageTable::print()
     for (i = 0; i < keys.size(); i++)
     {
         // TODO: print all pages
+        std::vector<std::string> split = splitKey(keys[i]);
+        std::cout << " " << split.at(0) << " | " << getSpaces(split.at(1).length(), 11) << split.at(1) << " | " << getSpaces(_table.at(keys[i]), 12)<< _table.at(keys[i]) << " " << std::endl;
     }
+}
+
+std::string PageTable::getSpaces(int string, int maxSize){
+    int stringSize = maxSize - string;
+    std::string result; 
+    for(int i = 0; i < stringSize; i++){
+        result = result + " ";
+    }
+    return result;
+}
+
+std::vector<std::string> PageTable::splitKey(std::string key){
+    std::vector<std::string> strings;
+    char *word = strdup((char *)key.c_str());
+    char *test = strtok(word, "|");
+    while(test != NULL){
+        strings.push_back(test);
+        test = strtok(NULL, "|");
+    }
+    free(word);
+    return strings;
 }

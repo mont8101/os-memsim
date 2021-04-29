@@ -1,4 +1,6 @@
 #include "mmu.h"
+#include <string>
+#include <sstream>
 
 Mmu::Mmu(int memory_size)
 {
@@ -72,6 +74,31 @@ void Mmu::print()
         for (j = 0; j < _processes[i]->variables.size(); j++)
         {
             // TODO: print all variables (excluding <FREE_SPACE> entries)
+            int pid = _processes[i]->pid;
+            std::string varName = _processes[i]->variables[j]->name;
+            std::string virtualAddress = intToHex(_processes[i]->variables[j]->virtual_address);
+            int size = _processes[i]->variables[j]->size;
+
+            if(varName != "<FREE_SPACE>"){
+                std::cout << " " << pid << " | " << varName << getSpaces(varName.length(), 13) << " |   0x" << virtualAddress << " | " << getSpaces(virtualAddress.length(), 10) << size << " " << std::endl;
+            }
         }
     }
+}
+
+std::string Mmu::getSpaces(int string, int maxSize){
+    int stringSize = maxSize - string;
+    std::string result; 
+    for(int i = 0; i < stringSize; i++){
+        result = result + " ";
+    }
+    return result;
+}
+
+std::string Mmu::intToHex(int num){
+    std::string result;
+    std::stringstream ss;
+    ss << std::hex <<num;
+    ss >> result;
+    return result;
 }
