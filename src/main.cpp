@@ -6,7 +6,7 @@
 
 void printStartMessage(int page_size);
 void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table);
-void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table);
+void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table, bool print);
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, void *memory);
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table);
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
             }
             //void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
             //std::cout << "  * allocate <PID> <var_name> <data_type> <number_of_elements> (allocated memory on the heap)" << std:: endl;
-            allocateVariable(std::stoi(strings.at(1)), strings.at(2), check, std::stoi(strings.at(4)), mmu, page_table);
+            allocateVariable(std::stoi(strings.at(1)), strings.at(2), check, std::stoi(strings.at(4)), mmu, page_table, true);
         }
         else if(strings.at(0) == "set"){
             
@@ -85,7 +85,12 @@ int main(int argc, char **argv)
             
         }
         else if(strings.at(0) == "print"){
-            
+            if(strings.at(1) == "page"){
+                page_table->print();
+            }
+            else if(strings.at(1) == "mmu"){
+                mmu->print();
+            }
         }
         else{
             printf("command doesn't exist");
@@ -131,14 +136,15 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
     //void addVariableToProcess(uint32_t pid, std::string var_name, DataType type, uint32_t size, uint32_t address);
-    mmu->addVariableToProcess(currentPid, "<TEXT>", Int, text_size, 0);
-    mmu->addVariableToProcess(currentPid, "<GLOBALS>", Int, data_size, text_size);
-    mmu->addVariableToProcess(currentPid, "<STACK>", Int, 65536, text_size+data_size);
+    allocateVariable(currentPid, "<TEXT>", Char, text_size, mmu, page_table, false);//call allocatevar
+    allocateVariable(currentPid, "<GLOBALS>", Char, data_size, mmu, page_table, false);//call allocatevar
+    allocateVariable(currentPid, "<STACK>", Char, 65536, mmu, page_table, false);//call allocatevar
     printf("%i\n", currentPid);
+    //figure out way to make allocate not print at same time
     //   - print pid
 }
 
-void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
+void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table, bool print)
 {
     // TODO: implement this!
     //   - find first free space within a page already allocated to this process that is large enough to fit the new variable
@@ -166,8 +172,10 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
             freeSpace = currentProcess->variables.at(j);
             std::vector<Variable*>::iterator it;
             it = mmu->getVars(currentProcess).begin() + j;
-            int remainingSpace = (freeSpace->virtual_address%pSize)%byteSize;
-            if(remainingSpace != 0){
+            int remainingSpace = (pSize - (freeSpace->virtual_address%pSize))%byteSize; 
+            int firstPageTest = (int) freeSpace->virtual_address/pSize;
+            int lastPageTest = (int)(freeSpace->virtual_address + creating->size - 1)/pSize;
+            if(remainingSpace != 0 && firstPageTest != lastPageTest){
                 int freeSpaceSize = freeSpace->size - remainingSpace - totalSize; //new small free space size
                 Variable *addFreeSpace = new Variable(); //new var for new free space after added var
                 addFreeSpace->name = "<FREE_SPACE>";
@@ -175,7 +183,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
                 freeSpace->size = remainingSpace; //new size for small free space
                 creating->virtual_address = freeSpace->virtual_address + remainingSpace; //add new var in correct spot
                 addFreeSpace->virtual_address = creating->virtual_address + creating->size; //add free space address after var
-                currentProcess->variables.emplace_back(addFreeSpace); //add new free space to vector
+                currentProcess->variables.push_back(addFreeSpace); //add new free space to vector
             }
             else{
                 creating->virtual_address = freeSpace->virtual_address;
@@ -192,25 +200,24 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
             int firstPage = (int) creating->virtual_address/pSize;
             int lastPage = (int)(creating->virtual_address + creating->size - 1)/pSize;
             std::string key = std::to_string(pid) + "|" + std::to_string(firstPage);
-            if(page_table->getTable().count(key) == 1){
-                for(int i = firstPage + 1; i <= lastPage; i++){
-                    page_table->addEntry(pid, i);
-                }
-            }
-            else{
-                for(int i = firstPage; i <= lastPage; i++){
+            
+            for(int i = firstPage + 1; i <= lastPage; i++){
+                std::string key = std::to_string(pid) + "|" + std::to_string(i);
+                if(page_table->getTable().count(key) == 1){
                     page_table->addEntry(pid, i);
                 }
             }
 
-            mmu->getVars(currentProcess).emplace(it, creating);
+            mmu->getVars(currentProcess).insert(it, creating);
             break;
         }
     }
     //   - if no hole is large enough, allocate new page(s)
     //   - insert variable into MMU
     //   - print virtual memory address 
-    printf("%i", creating->virtual_address);
+    if(print){
+        printf("%i\n", creating->virtual_address);
+    } 
 }
 
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, void *memory)
