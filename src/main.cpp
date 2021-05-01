@@ -219,7 +219,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
                 int lastPage = (int)(creating->virtual_address + creating->size - 1)/pSize;
                 std::string key = std::to_string(pid) + "|" + std::to_string(firstPage);
                 
-                for(int i = firstPage + 1; i <= lastPage; i++){
+                for(int i = firstPage; i <= lastPage; i++){
                     std::string key = std::to_string(pid) + "|" + std::to_string(i);
                     if(page_table->getTable().count(key) != 1){
                         page_table->addEntry(pid, i);
@@ -357,7 +357,11 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     mmu->terminate(pid);
-    
+    for(int i = 0; i < mmu->getProcess().size(); i++){
+        if(mmu->getPID(i) == pid){
+            
+        }
+    }
     /*bool pidFound = false;
     
     for(int i = 0; i < mmu->getProcess().size(); i ++ ){
