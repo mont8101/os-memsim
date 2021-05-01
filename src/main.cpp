@@ -319,6 +319,14 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     for(it = currentProcess->variables.begin(); it != currentProcess->variables.end(); it++){
         if(currentProcess->variables.at(i)->name == var_name){
             varFound = true;
+            int firstPage = (int) currentProcess->variables.at(i)->virtual_address/page_table->getPageSize();
+            int lastPage = (int)(currentProcess->variables.at(i)->virtual_address+ currentProcess->variables.at(i)->size - 1)/page_table->getPageSize();
+            if(currentProcess->variables.at(i)->virtual_address%page_table->getPageSize() != 0){
+                firstPage ++;
+            }
+            for(int i = firstPage; i <= lastPage; i++){
+                page_table->freeFreePage(pid, i);
+            }
             if(i != 0 && currentProcess->variables.at(i - 1)->name == "<FREE_SPACE>" && currentProcess->variables.at(i + 1)->name == "<FREE_SPACE>"){ //if current var is between 2 free spaces
                     currentProcess->variables.at(i - 1)->size = currentProcess->variables.at(i - 1)->size + currentProcess->variables.at(i)->size + currentProcess->variables.at(i + 1)->size; //add all 3 together
                     currentProcess->variables.erase(it);
