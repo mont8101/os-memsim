@@ -3,6 +3,7 @@
 #include "algorithm"
 #include <string>
 #include <cstring>
+#include <iostream>
 
 PageTable::PageTable(int page_size)
 {
@@ -54,7 +55,6 @@ void PageTable::addEntry(uint32_t pid, int page_number)
             it++;
         }
     }
-    
     _table[entry] = frame;
 }
 
@@ -98,12 +98,13 @@ void PageTable::print()
     std::cout << "------+-------------+--------------" << std::endl;
 
     std::vector<std::string> keys = sortedKeys();
-
     for (i = 0; i < keys.size(); i++)
     {
         // TODO: print all pages
         std::vector<std::string> split = splitKey(keys[i]);
-        std::cout << " " << split.at(0) << " | " << getSpaces(split.at(1).length(), 11) << split.at(1) << " | " << getSpaces(_table.at(keys[i]), 12)<< _table.at(keys[i]) << " " << std::endl;
+        std::string str = "";
+        str = std::to_string(_table.at(keys[i]));
+        std::cout << " " << split.at(0) << " | " << getSpaces(split.at(1).length(), 11) << split.at(1) << " | " << getSpaces(str.length(), 11)<< _table.at(keys[i]) << " " << std::endl;
     }
 }
 
@@ -126,4 +127,8 @@ std::vector<std::string> PageTable::splitKey(std::string key){
     }
     free(word);
     return strings;
+}
+
+void PageTable::freePage(std::string pid, int pageNum){
+    
 }

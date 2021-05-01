@@ -37,6 +37,8 @@ public:
     std::vector<Variable*> getVars(Process *process);
     std::string getSpaces(int string, int maxSize);
     std::string intToHex(int num);
+    uint32_t getMemSize();
+    void terminate(uint32_t pid);
 };
 
 #endif // __MMU_H_

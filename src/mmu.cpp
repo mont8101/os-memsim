@@ -24,6 +24,10 @@ std::vector<Variable*> Mmu::getVars(Process *process){
     return process->variables;
 }
 
+uint32_t Mmu::getMemSize(){
+    return _max_size;
+}
+
 uint32_t Mmu::createProcess()
 {
     Process *proc = new Process();
@@ -96,9 +100,27 @@ std::string Mmu::getSpaces(int string, int maxSize){
 }
 
 std::string Mmu::intToHex(int num){
+    
     std::string result;
     std::stringstream ss;
     ss << std::hex <<num;
     ss >> result;
+    int leading = 8 - result.length();
+    for (int i = 0; i < leading; i++){
+       result = "0" + result;
+    }
     return result;
+}
+
+void Mmu::terminate(uint32_t pid) {
+    bool pidFound = false;
+    for(int i = 0; i < _processes.size(); i++) {
+        if(_processes[i]->pid == pid) {
+            _processes.erase(_processes.begin() + i);
+            pidFound = true;
+        }
+    }
+    if(!pidFound){
+        printf("error: process not found\n");
+    }
 }
