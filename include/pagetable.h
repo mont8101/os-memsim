@@ -40,7 +40,8 @@ public:
     std::map<std::string, int> getTable();
     std::string getSpaces(int string, int maxSize);
     std::vector<std::string> splitKey(std::string key);
-    void freePage(std::string pid, int pageNum);
+    void freePIDPage(uint32_t pid);
+    void freeFreePage(uint32_t pid, int page);
 };
 
 #endif // __PAGETABLE_H_

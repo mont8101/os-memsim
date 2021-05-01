@@ -129,6 +129,32 @@ std::vector<std::string> PageTable::splitKey(std::string key){
     return strings;
 }
 
-void PageTable::freePage(std::string pid, int pageNum){
-    
+void PageTable::freePIDPage(uint32_t pid){
+    std::vector<std::string> keys = sortedKeys();
+    std::map<std::string, int>::iterator it;
+    int i = 0;
+    for(it = _table.begin(); it != _table.end(); it++){
+        std::vector<std::string> split = splitKey(keys[i]);
+        if(split.at(0) == std::to_string(pid)){
+            _table.erase(it);
+            it = _table.begin();
+            i = -1;
+        }
+        i++;
+    }
+}
+
+void PageTable::freeFreePage(uint32_t pid, int page){
+    std::vector<std::string> keys = sortedKeys();
+    std::map<std::string, int>::iterator it;
+    int i = 0;
+    for(it = _table.begin(); it != _table.end(); it++){
+        std::vector<std::string> split = splitKey(keys[i]);
+        if(split.at(0) == std::to_string(pid) && split.at(1) == std::to_string(page)){
+            _table.erase(it);
+            it = _table.begin();
+            i = -1;
+        }
+        i++;
+    }
 }

@@ -357,11 +357,9 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     mmu->terminate(pid);
-    for(int i = 0; i < mmu->getProcess().size(); i++){
-        if(mmu->getPID(i) == pid){
-            
-        }
-    }
+    
+    page_table->freePIDPage(pid);
+
     /*bool pidFound = false;
     
     for(int i = 0; i < mmu->getProcess().size(); i ++ ){
